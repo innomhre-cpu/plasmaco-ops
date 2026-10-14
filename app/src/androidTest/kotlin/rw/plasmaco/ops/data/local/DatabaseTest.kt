@@ -50,7 +50,9 @@ class DatabaseTest {
     @Test
     fun onlyNeverSubmittedDraftsCanBeDeleted() = runBlocking {
         val submitted = TestData.report(id = "submitted", status = ReportStatus.SUBMITTED).copy(version = 1)
-        val draft = TestData.report(id = "draft")
+        val draft = TestData.report(id = "draft").let { r ->
+            r.copy(entries = r.entries.map { it.copy(id = "draft-${it.id}") }, materials = r.materials.map { it.copy(id = "draft-${it.id}") })
+        }
         db.reports().replace(submitted.toEntity(1, "SYNCED"))
         db.reports().replace(draft.toEntity(0, "PENDING"))
         assertEquals(0, db.reports().deleteDraft("submitted"))
