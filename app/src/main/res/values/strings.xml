@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Plasmaco Ops</string>
+    <string name="notification_channel_alerts">Operations alerts</string>
+    <string name="notification_channel_alerts_desc">Low stock, pending approvals, missing reports and sync problems</string>
+    <string name="notification_channel_sync">Background sync</string>
+</resources>

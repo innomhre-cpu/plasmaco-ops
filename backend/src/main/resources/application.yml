@@ -1,0 +1,40 @@
+# PLASMACO Operations server settings. Every value can be set from the environment; no secret has a default here.
+# Required: PLASMACO_DB_URL, PLASMACO_DB_USER, PLASMACO_DB_PASSWORD, PLASMACO_JWT_SECRET. See docs/server.md.
+spring:
+  application:
+    name: plasmaco-server
+  main:
+    banner-mode: off
+  datasource:
+    url: ${PLASMACO_DB_URL:jdbc:postgresql://localhost:5432/plasmaco}
+    username: ${PLASMACO_DB_USER:plasmaco}
+    password: ${PLASMACO_DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${PLASMACO_DB_POOL_SIZE:10}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # Never clean a production database from the application.
+    clean-disabled: true
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-exception: false
+
+plasmaco:
+  jwt-secret: ${PLASMACO_JWT_SECRET:}
+  token-ttl-hours: ${PLASMACO_TOKEN_TTL_HOURS:12}
+  allow-negative-override: ${PLASMACO_ALLOW_NEGATIVE_OVERRIDE:false}
+  max-login-failures: ${PLASMACO_MAX_LOGIN_FAILURES:5}
+  lock-minutes: ${PLASMACO_LOCK_MINUTES:15}
+  time-zone: ${PLASMACO_TIME_ZONE:Africa/Kigali}
+  bootstrap-admin-username: ${PLASMACO_BOOTSTRAP_ADMIN_USERNAME:}
+  bootstrap-admin-name: ${PLASMACO_BOOTSTRAP_ADMIN_NAME:Administrator}
+  bootstrap-admin-password: ${PLASMACO_BOOTSTRAP_ADMIN_PASSWORD:}
+
+logging:
+  level:
+    root: INFO

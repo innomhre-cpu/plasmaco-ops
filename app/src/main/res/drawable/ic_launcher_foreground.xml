@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Pipe cross-section: outer wall ring -->
+    <path android:fillColor="#FF17504E"
+        android:pathData="M54,26a28,28 0,1 1,0 56a28,28 0,1 1,0 -56zM54,34a20,20 0,1 0,0 40a20,20 0,1 0,0 -40z" />
+    <!-- Letter P built from the bore -->
+    <path android:fillColor="#FF17504E"
+        android:pathData="M47,42h9.5a8,8 0,0 1,0 16h-4.5v8h-5zM52,47v6h4.3a3,3 0,0 0,0 -6z" />
+    <!-- Accent: flow dot -->
+    <path android:fillColor="#FF00C953" android:pathData="M74,30a5,5 0,1 1,0 10a5,5 0,1 1,0 -10z" />
+</vector>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only for the launcher icon and the system splash; Compose uses ui/theme/Color.kt tokens. -->
+    <color name="plasmaco_primary">#FF17504E</color>
+    <color name="plasmaco_background">#FFF1F2F4</color>
+    <color name="plasmaco_background_dark">#FF0E1313</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

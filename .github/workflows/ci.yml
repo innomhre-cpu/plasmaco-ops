@@ -1,0 +1,129 @@
+# Builds and tests everything on every push and pull request:
+#   shared modules + server (unit tests, PostgreSQL store and HTTP tests via Testcontainers),
+#   Android app (unit tests, debug and release APKs uploaded as artifacts, lint report).
+# Instrumented tests (Room on SQLite, Compose UI) run on an emulator when started by hand or on main.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Repository checks (no Gradle)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/wrapper-validation@v4
+      - name: Install PostgreSQL 16
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -yq postgresql-16
+      - name: Server schema and SQL on PostgreSQL
+        run: PG_BIN=/usr/lib/postgresql/16/bin tools/verify-server-sql.sh
+
+  server:
+    name: Shared modules and server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Test
+        run: ./gradlew --no-daemon :core:domain:test :core:api:test :backend:test
+      - name: Server jar
+        run: ./gradlew --no-daemon :backend:bootJar
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: server-test-reports
+          path: |
+            core/*/build/reports/tests
+            backend/build/reports/tests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plasmaco-server
+          path: backend/build/libs/plasmaco-server.jar
+
+  android:
+    name: Android app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Unit tests
+        run: ./gradlew --no-daemon :app:testDebugUnitTest
+      - name: Build APKs
+        # Release signing comes from repository secrets when they are set; otherwise the release APK is
+        # debug-signed (installable for testing, not for distribution). See docs/build.md.
+        env:
+          PLASMACO_KEYSTORE_BASE64: ${{ secrets.PLASMACO_KEYSTORE_BASE64 }}
+          PLASMACO_KEYSTORE_PASSWORD: ${{ secrets.PLASMACO_KEYSTORE_PASSWORD }}
+          PLASMACO_KEY_ALIAS: ${{ secrets.PLASMACO_KEY_ALIAS }}
+          PLASMACO_KEY_PASSWORD: ${{ secrets.PLASMACO_KEY_PASSWORD }}
+        run: |
+          if [ -n "$PLASMACO_KEYSTORE_BASE64" ]; then
+            echo "$PLASMACO_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            export PLASMACO_KEYSTORE="$RUNNER_TEMP/release.keystore"
+          fi
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease
+          rm -f "$RUNNER_TEMP/release.keystore"
+      - name: Lint
+        run: ./gradlew --no-daemon :app:lintDebug
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plasmaco-apks
+          path: app/build/outputs/apk/**/*.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-reports
+          path: |
+            app/build/reports
+            app/schemas
+
+  instrumented:
+    name: Instrumented tests (emulator)
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: instrumented-reports
+          path: app/build/reports/androidTests

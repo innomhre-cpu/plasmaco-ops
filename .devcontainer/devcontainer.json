@@ -1,0 +1,19 @@
+// Development container with JDK 17, the Android SDK (command-line tools, platform 35, build tools) and Docker for
+// the server's Testcontainers tests. Open the repository in it, then run ./gradlew build.
+{
+  "name": "PLASMACO Operations",
+  "image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "containerEnv": {
+    "ANDROID_HOME": "/opt/android-sdk",
+    "ANDROID_SDK_ROOT": "/opt/android-sdk"
+  },
+  "postCreateCommand": "bash .devcontainer/install-android-sdk.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["fwcd.kotlin", "vscjava.vscode-gradle"]
+    }
+  }
+}
