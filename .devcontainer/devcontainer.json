@@ -2,7 +2,7 @@
 // the server's Testcontainers tests. Open the repository in it, then run ./gradlew build.
 {
   "name": "PLASMACO Operations",
-  "image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
+  "build": { "dockerfile": "Dockerfile" },
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
