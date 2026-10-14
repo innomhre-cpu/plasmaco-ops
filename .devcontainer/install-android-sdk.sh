@@ -9,7 +9,7 @@ if [ ! -x "$SDK/cmdline-tools/latest/bin/sdkmanager" ]; then
   unzip -q "/tmp/$TOOLS_ZIP" -d "$SDK/cmdline-tools-tmp"
   mkdir -p "$SDK/cmdline-tools" && mv "$SDK/cmdline-tools-tmp/cmdline-tools" "$SDK/cmdline-tools/latest" && rm -rf "$SDK/cmdline-tools-tmp" "/tmp/$TOOLS_ZIP"
 fi
-yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+(yes 2>/dev/null || true) | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
 "$SDK/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 echo "sdk.dir=$SDK" > local.properties
 echo "Android SDK ready in $SDK"
